@@ -359,7 +359,6 @@ class ClaMPDatasetGPT(): # 4 features -> most and least correlated atributs
         # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
         #     X_class_1, y_class_1, test_size=test_size, shuffle=False
         # )
-
         X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
         X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1
 
@@ -832,7 +831,7 @@ def main_qcc_update_correlation(computers='all', dataset=0, samples=500, start_a
 
 """### Quantum Clustering Method"""
 TOTAL_SAMPLES = X.shape[0]
-i = 0
+i = 1
 # # for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
 # for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
 #     samples = int((TOTAL_SAMPLES * j) / 10)   
@@ -840,16 +839,16 @@ i = 0
 # print("**********************************************")
 
 """### Classical Clustering"""
-# for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
-for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
-    samples = int((TOTAL_SAMPLES * j) / 10)  
-    df_result_svc0 = main_clustering_correlation(i, samples = samples, start_at=2, end_at=20) #"ibm_brisbane", start_at=2, end_at=20)
-print("**********************************************")
+# # for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
+# for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
+#     samples = int((TOTAL_SAMPLES * j) / 10)  
+#     df_result_svc0 = main_clustering_correlation(i, samples = samples, start_at=2, end_at=20) #"ibm_brisbane", start_at=2, end_at=20)
+# print("**********************************************")
 
 """### Quantum Cluster Circuit"""
 
-# # for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
-# for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
-#     samples = int((TOTAL_SAMPLES * j) / 10)   
-#     df_result_qkernel0 = main_qcc_update_correlation(dataset = i, samples = samples, start_at=2, end_at=11)
-# print("**********************************************")
+# for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
+for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
+    samples = int((TOTAL_SAMPLES * j) / 10)   
+    df_result_qkernel0 = main_qcc_update_correlation(dataset = i, samples = samples, start_at=2, end_at=11)
+print("**********************************************")

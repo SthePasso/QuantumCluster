@@ -38,6 +38,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import adjusted_rand_score
+
 #from qiskit.utils import algorithm_globals
 from qiskit.circuit.library import PauliFeatureMap, ZZFeatureMap
 from qiskit_algorithms.state_fidelities import ComputeUncompute
@@ -241,12 +244,14 @@ class ClaMPDataset(): # 4 features -> most corelated atributs
         y_class_1 = self.y[self.y == 1]
 
         # Split each class separately
-        X_train_0, X_test_0, y_train_0, y_test_0 = train_test_split(
-            X_class_0, y_class_0, test_size=test_size, shuffle=False
-        )
-        X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
-            X_class_1, y_class_1, test_size=test_size, shuffle=False
-        )
+        # X_train_0, X_test_0, y_train_0, y_test_0 = train_test_split(
+        #     X_class_0, y_class_0, test_size=test_size, shuffle=False
+        # )
+        # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
+        #     X_class_1, y_class_1, test_size=test_size, shuffle=False
+        # )
+        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
+        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1
 
         # Concatenate to maintain order
         X_train = np.vstack((X_train_0, X_train_1))
@@ -348,12 +353,14 @@ class ClaMPDatasetGPT(): # 4 features -> most and least correlated atributs
         y_class_1 = self.y[self.y == 1]
 
         # Split each class separately
-        X_train_0, X_test_0, y_train_0, y_test_0 = train_test_split(
-            X_class_0, y_class_0, test_size=test_size, shuffle=False
-        )
-        X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
-            X_class_1, y_class_1, test_size=test_size, shuffle=False
-        )
+        # X_train_0, X_test_0, y_train_0, y_test_0 = train_test_split(
+        #     X_class_0, y_class_0, test_size=test_size, shuffle=False
+        # )
+        # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
+        #     X_class_1, y_class_1, test_size=test_size, shuffle=False
+        # )
+        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
+        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1
 
         # Concatenate to maintain order
         X_train = np.vstack((X_train_0, X_train_1))
@@ -623,12 +630,12 @@ def qsc(name, X_train, y_train, X_test, y_test, dimension, service, n_clusters=2
 
 def main_qsc_update_correlation(computers='all', dataset=0, samples=500, start_at=0, end_at=20):
     if dataset == 1:        
-        results_file = "quantum_clustering_results_correlation_10_10.csv"
+        results_file = "quantum_clustering_method_results_correlation_10_10.csv"
         if should_skip_execution(results_file, samples, end_at):
             return True
         malware = ClaMPDataset(target='class', cut=samples)
     elif dataset == 0:
-        results_file = "quantum_clustering_results_correlation_10_0.csv"
+        results_file = "quantum_clustering_method_results_correlation_10_0.csv"
         if should_skip_execution(results_file, samples, end_at):
             return True
         malware = ClaMPDatasetGPT(target='class', cut=samples)
@@ -708,7 +715,119 @@ def main_clustering_correlation(dataset=0, samples=500, start_at=2, end_at=20):
 
 """ ### Quantum Cluster Model Circuit """
 
-# to be compleated
+def quantum_clustering_circuit(name, X_train, y_train, X_test, y_test, dimension, service, n_clusters=2, plot_result = 0):
+    # Hardware setup
+    backend = service.backend(name)
+    #sampler = Sampler(backend)
+
+    # Normalize the features into [0, π] for angle encoding
+    scaler = MinMaxScaler(feature_range=(0, np.pi))
+    X = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    # Clustering parameters
+    n_clusters = 2
+    n_epochs = 100
+    n_samples = X.shape[0]
+    num_features = X.shape[1]
+
+    # Quantum kernel setup
+    feature_map = ZZFeatureMap(feature_dimension=num_features, reps=2)
+        
+    # Transpile quantum kernel for the local backend
+    feature_map_compiled = transpile(feature_map, backend=backend)
+        
+    # Quantum Kernel setup
+    number_qubits = 127 if name != 'ibm_torino' else 133
+    quantum_kernel_circuit = QuantumCircuit(number_qubits)
+    quantum_kernel_circuit.append(feature_map_compiled, range(number_qubits))
+        
+    # Use QuantumCircuit as part of FidelityQuantumKernel
+    fidelity_quantum_kernel = FidelityQuantumKernel()
+    fidelity_quantum_kernel._quantum_circuit = quantum_kernel_circuit
+
+    # Initialize random cluster centers
+    cluster_centers = X[np.random.choice(n_samples, n_clusters, replace=False)]
+
+    # Main training loop (Quantum Kernel k-means style)
+    for epoch in range(n_epochs):
+        #print(f"Epoch {epoch+1}/{n_epochs}")
+        
+        y_pred = np.zeros(n_samples)
+
+        # Assign points to nearest cluster using quantum kernel similarity
+        for i, x in enumerate(X):
+            similarities = [fidelity_quantum_kernel.evaluate(x.reshape(1, -1), c.reshape(1, -1))[0, 0]
+                            for c in cluster_centers]
+            y_pred[i] = np.argmax(similarities)
+
+        # Update cluster centers (mean of assigned samples)
+        for j in range(n_clusters):
+            points_in_cluster = X[y_pred == j]
+            if len(points_in_cluster) > 0:
+                cluster_centers[j] = np.mean(points_in_cluster, axis=0)
+
+    # Evaluate clustering performance
+    print(y_train.shape, y_pred.shape)
+    score = adjusted_rand_score(y_train, y_pred)
+    print(f"\nFinal Clustering Score (Adjusted Rand Index): {score:.2f}")
+
+    if plot_result == 1:
+        # Plot the final clustering
+        plt.figure(figsize=(8, 6))
+        plt.scatter(X[:, 0], X[:, 1], c=y_pred, cmap='viridis', alpha=0.6)
+        plt.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='X', s=100)
+        plt.title("Quantum Kernel Clustering of Iris Dataset")
+        plt.xlabel("Feature 1")
+        plt.ylabel("Feature 2")
+        plt.grid(True)
+        plt.show()
+
+    return y_pred, backend
+
+def main_qcc_update_correlation(computers='all', dataset=0, samples=500, start_at=0, end_at=20):
+    if dataset == 1:        
+        results_file = "quantum_clustering_circuit_results_correlation_10_10.csv"
+        if should_skip_execution(results_file, samples, end_at):
+            return True
+        malware = ClaMPDataset(target='class', cut=samples)
+    elif dataset == 0:
+        results_file = "quantum_clustering_circuit_results_correlation_10_0.csv"
+        if should_skip_execution(results_file, samples, end_at):
+            return True
+        malware = ClaMPDatasetGPT(target='class', cut=samples)
+    else:
+        return True
+
+    if computers != 'all':
+        _, service = backends()
+        q_hardwares = [computers]
+    else:
+        q_hardwares, service = backends()
+
+    print("QSVM with high correlation features:")
+    
+    # **Check if the CSV already exists**
+    file_exists = os.path.exists(results_file)
+
+    for dimension in range(start_at, end_at):
+        if should_skip_execution(results_file, samples, dimension) == False:
+            X_train, X_test, y_train, y_test = malware.dataset(dimension)
+            print("Shape: ", X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+            for q_hardware in q_hardwares:
+                start = time.time()
+                predicted_labels, backend = quantum_clustering_circuit(q_hardware, X_train, y_train, X_test, y_test, dimension, service)
+
+                df_model = metrics_of_evaluation(q_hardware, dimension, predicted_labels, time.time(), start, X_train, y_train, backend)
+                df_model["Samples"] = samples  # Add sample size info
+                # **Append new results while keeping existing content**
+                df_model.to_csv(results_file, mode='a', index=False, header=not file_exists)
+
+                # **Ensure the header is written only once**
+                file_exists = True  
+
+    return True
 
 """### Quantum Clustering Method"""
 TOTAL_SAMPLES = X.shape[0]
