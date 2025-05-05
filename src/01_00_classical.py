@@ -345,31 +345,6 @@ class ClaMPDatasetGPT(): # 4 features -> most and least correlated atributs
         plt.title('Correlation Matrix')
         plt.show()
 
-    # def stratified_ordered_split(self, X_dim, test_size=0.2):
-    #     # Ensure index alignment
-    #     X_class_0 = X_dim.loc[self.y[self.y == 0].index]
-    #     X_class_1 = X_dim.loc[self.y[self.y == 1].index]
-    #     y_class_0 = self.y[self.y == 0]
-    #     y_class_1 = self.y[self.y == 1]
-
-    #     # Split each class separately
-    #     # X_train_0, X_test_0, y_train_0, y_test_0 = train_test_split(
-    #     #     X_class_0, y_class_0, test_size=test_size, shuffle=False
-    #     # )
-    #     # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
-    #     #     X_class_1, y_class_1, test_size=test_size, shuffle=False
-    #     # )
-
-    #     X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
-    #     X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1, X_class_1, y_class_1
-
-    #     # Concatenate to maintain order
-    #     X_train = np.vstack((X_train_0, X_train_1))
-    #     X_test = np.vstack((X_test_0, X_test_1))
-    #     y_train = np.hstack((y_train_0, y_train_1))
-    #     y_test = np.hstack((y_test_0, y_test_1))
-
-    #     return X_train, X_test, y_train, y_test
     def stratified_ordered_split(self, X_dim, test_size=0.2):
         # Ensure index alignment
         X_class_0 = X_dim.loc[self.y[self.y == 0].index]

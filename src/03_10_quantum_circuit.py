@@ -250,8 +250,8 @@ class ClaMPDataset(): # 4 features -> most corelated atributs
         # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
         #     X_class_1, y_class_1, test_size=test_size, shuffle=False
         # )
-        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
-        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1, X_class_1, y_class_1
+        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, X_class_0, y_class_0, y_class_0
+        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, X_class_1, y_class_1, y_class_1
 
         # Concatenate to maintain order
         X_train = np.vstack((X_train_0, X_train_1))
@@ -359,8 +359,8 @@ class ClaMPDatasetGPT(): # 4 features -> most and least correlated atributs
         # X_train_1, X_test_1, y_train_1, y_test_1 = train_test_split(
         #     X_class_1, y_class_1, test_size=test_size, shuffle=False
         # )
-        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, y_class_0, X_class_0, y_class_0
-        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, y_class_1, X_class_1, y_class_1
+        X_train_0, X_test_0, y_train_0, y_test_0 = X_class_0, X_class_0, y_class_0, y_class_0
+        X_train_1, X_test_1, y_train_1, y_test_1 = X_class_1, X_class_1, y_class_1, y_class_1
 
         # Concatenate to maintain order
         X_train = np.vstack((X_train_0, X_train_1))
