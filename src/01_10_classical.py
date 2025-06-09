@@ -842,7 +842,7 @@ i = 1
 # for i in range(0, 2): # Type of features selection: (High High) vs (High Low)
 for j in range(1, 11): # Size of dataset: 10%, 20%, ..., 100%
     samples = int((TOTAL_SAMPLES * j) / 10)  
-    df_result_svc0 = main_clustering_correlation(i, samples = samples, start_at=2, end_at=20) #"ibm_brisbane", start_at=2, end_at=20)
+    df_result_svc0 = main_clustering_correlation(i, samples = samples, start_at=2, end_at=11) #"ibm_brisbane", start_at=2, end_at=20)
 print("**********************************************")
 
 """### Quantum Cluster Circuit"""
